@@ -1,0 +1,9 @@
+# Sensitive variables - DO NOT COMMIT TO GIT
+# Copy this file to terraform.tfvars.local and add your secrets
+
+# OpenAI API Key for Lambda function
+openai_api_key = "your-openai-api-key-here"
+
+# Add other sensitive variables here as needed
+# aws_access_key = "your-aws-access-key"
+# aws_secret_key = "your-aws-secret-key"

@@ -1,0 +1,51 @@
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite3
+*.bak
+
+# IDE files
+*.swp
+.DS_Store
+.idea/
+.vscode/
+
+dist/
+build/
+*.egg-info/
+
+# Node.js
+node_modules/
+out/
+.next/
+*.log
+
+# Python
+__pycache__
+.venv/
+venv/
+*.pyc
+*.pyo
+*.pyd
+
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+# remove the following line if you want to keep the lock file in version Control
+# to ensure everyone is using the same provider versions
+.terraform.lock.hcl
+terraform.tfstate.d/
+*.tfvars
+!terraform.tfvars
+!prod.tfvars
+terraform.tfvars.local
+
+# Lambda packages
+lambda-deployment.zip
+lambda-package/
+
+# aws
+.aws/
