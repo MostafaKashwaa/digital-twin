@@ -8,7 +8,7 @@ REBUILD=${3:-true}            # true | false
 echo "🚀 Deploying ${PROJECT_NAME} to ${ENVIRONMENT}..."
 
 # 1. Build Lambda package if requested
-if [ "$REBUILD" = "true" ]; then
+if [ "$REBUILD" = "true" ] || [ ! -f "../backend/lambda-deployment.zip" ]; then
   cd "$(dirname "$0")/.."        # project root
   echo "📦 Building Lambda package..."
   (cd backend && uv run deploy.py)
@@ -16,10 +16,9 @@ fi
 
 # 2. Terraform workspace & apply
 cd terraform
-# terraform init -input=false
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-# AWS_REGION=${DEFAULT_AWS_REGION:-us-east-1}
 AWS_REGION=${DEFAULT_AWS_REGION:-eu-central-1}
+
 terraform init -input=false \
   -backend-config="bucket=twin-terraform-state-${AWS_ACCOUNT_ID}" \
   -backend-config="key=${ENVIRONMENT}/terraform.tfstate" \
@@ -33,25 +32,39 @@ else
   terraform workspace select "$ENVIRONMENT"
 fi
 
+# Build Terraform apply command
+TF_APPLY_ARGS=()
+
+# Add project and environment variables
+TF_APPLY_ARGS+=("-var" "project_name=${PROJECT_NAME}")
+TF_APPLY_ARGS+=("-var" "environment=${ENVIRONMENT}")
+
+# Add OpenAI API key if provided
+if [ -n "$OPENAI_API_KEY" ]; then
+  TF_APPLY_ARGS+=("-var" "openai_api_key=${OPENAI_API_KEY}")
+else
+  echo "⚠️  Warning: OPENAI_API_KEY not set."
+fi
+
 # Check if local variables file exists
 LOCAL_VARS_FILE="terraform.tfvars.local"
 if [ -f "$LOCAL_VARS_FILE" ]; then
   echo "📝 Loading local variables from $LOCAL_VARS_FILE"
-  LOCAL_VARS_ARG="-var-file=$LOCAL_VARS_FILE"
+  TF_APPLY_ARGS+=("-var-file=$LOCAL_VARS_FILE")
 else
-  echo "⚠️   Warning: $LOCAL_VARS_FILE not found. Secret keys will be empty."
-  LOCAL_VARS_ARG=""
+  echo "⚠️   Warning: $LOCAL_VARS_FILE not found. Using environment variables only."
 fi
 
 # Use prod.tfvars for production environment
 if [ "$ENVIRONMENT" = "prod" ]; then
-  TF_APPLY_CMD=(terraform apply -var-file=prod.tfvars $LOCAL_VARS_ARG -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -auto-approve)
-else
-  TF_APPLY_CMD=(terraform apply $LOCAL_VARS_ARG -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -auto-approve)
+  TF_APPLY_ARGS+=("-var-file=prod.tfvars")
 fi
 
+# Add auto-approve flag
+TF_APPLY_ARGS+=("-auto-approve")
+
 echo "🎯 Applying Terraform..."
-"${TF_APPLY_CMD[@]}"
+terraform apply "${TF_APPLY_ARGS[@]}"
 
 API_URL=$(terraform output -raw api_gateway_url)
 FRONTEND_BUCKET=$(terraform output -raw s3_frontend_bucket)
@@ -76,4 +89,3 @@ if [ -n "$CUSTOM_URL" ]; then
   echo "🔗 Custom domain  : $CUSTOM_URL"
 fi
 echo "📡 API Gateway    : $API_URL"
-
