@@ -3,7 +3,7 @@ set -e
 
 ENVIRONMENT=${1:-dev}          # dev | test | prod
 PROJECT_NAME=${2:-twin}
-REBUILD=${3:-false}            # true | false
+REBUILD=${3:-true}            # true | false
 
 echo "🚀 Deploying ${PROJECT_NAME} to ${ENVIRONMENT}..."
 
