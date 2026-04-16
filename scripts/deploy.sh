@@ -56,9 +56,9 @@ else
 fi
 
 # Use prod.tfvars for production environment
-if [ "$ENVIRONMENT" = "prod" ]; then
-  TF_APPLY_ARGS+=("-var-file=prod.tfvars")
-fi
+# if [ "$ENVIRONMENT" = "prod" ]; then
+#   TF_APPLY_ARGS+=("-var-file=prod.tfvars")
+# fi
 
 # Add auto-approve flag
 TF_APPLY_ARGS+=("-auto-approve")
