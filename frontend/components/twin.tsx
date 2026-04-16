@@ -16,6 +16,7 @@ export default function Twin() {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,9 +41,10 @@ export default function Twin() {
     setIsLoading(true);
 
     try {
-      // const response = await fetch('http://localhost:8000/chat', {
-      // const response = await fetch('https://xgadq63r9d.execute-api.eu-central-1.amazonaws.com/chat', {
-      console.log("Sending message to API:", process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000");
+      console.log(
+        "Sending message to API:",
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/chat",
+      );
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/chat`,
         {
@@ -87,6 +89,10 @@ export default function Twin() {
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      // Refocus input after messsage is sent.
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
   };
 
@@ -96,6 +102,13 @@ export default function Twin() {
       sendMessage();
     }
   };
+
+  // Check if avatar exists
+  //  useEffect(() => {
+  //    fetch("/avatar.jpg", { method: "HEAD" })
+  //       .then(res => setHasAvatar(res.ok))
+  //       .catch(() => setHasAvatar(false));
+  //  }, []);
 
   return (
     <div className="flex flex-col h-full bg-gray-50 rounded-lg shadow-lg">
