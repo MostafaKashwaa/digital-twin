@@ -49,3 +49,7 @@ lambda-package/
 
 # aws
 .aws/
+
+.tmux-agent-history
+docs/
+memory/
